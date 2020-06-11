@@ -20,32 +20,57 @@
 # yum install network-scripts -y
 ```
 
-2、获取网卡VIP，可在管理控制台概览页查看到ULB的IP。
+2、在管理控制台概览页查看到ULB的IP
 
-内网ULB时，这里的$VIP即为负载均衡器的内网服务IP地址。
+内网ULB时，需要在第三步中配置的$VIP即为负载均衡器的内网服务IP地址。
 ![](/images/%E8%8E%B7%E5%8F%96vip.png)
 
-外网ULB时，即为负载均衡器的外网服务IP地址（即EIP）。
+外网ULB时，$VIP即为负载均衡器的外网服务IP地址（即EIP）。
 ![](/images/ulb-vip.png)
 
-如果您使用自动化脚本配置，我们建议您使用我们的API describe\_ulb获取您配置所需的VIP。如何调用此API请参考：
+如果您使用自动化脚本配置，我们建议您使用我们的API describe\_ulb获取您配置所需的$VIP。如何调用此API请参考：
 
 [获取负载均衡信息-DescribeULB](https://docs.ucloud.cn/api/ulb-api/describe_ulb)
 
 
-3、将命令中得到的内容添加进"/etc/sysconfig/network-scripts/ifcfg-lo:1"中，若ULB绑定多个EIP，则多个EIP均需要配置。即如下内容：
+3、添加ULB的IP到主机网卡上
+
+打开网卡配置文件
 
 ```
-DEVICE=lo:1
+# sudo vim /etc/sysconfig/network-scripts/ifcfg-lo:1
+```
+
+在键盘上按下“i”键，开始vim编辑，输入一下内容
+
+```
+DEVICE=lo:1           //每一个ULB的IP绑定的地址，后续可添加为lo:2等
 IPADDR=$VIP
 NETMASK=255.255.255.255
 ```
+$VIP即第二步中找到的ULB的IP地址，若ULB绑定多个EIP，则多个EIP均需要配置。例：
+
+```
+DEVICE=lo:1          
+IPADDR=$VIP   //ULB的一个IP的地址
+NETMASK=255.255.255.255
+
+DEVICE=lo:2         
+IPADDR=$VIP         //ULB另一IP的地址
+NETMASK=255.255.255.255
+```
+
+编辑完成后，按“Esc”键退出编辑，输入“-wq”或者按住“Shift”双按“z”保存编辑的文档退出。
+
 
 4、启动虚拟网卡
 
 ```
 # ifup lo:1
+# ifup lo:2    //若配置了lo:2
 ```
+
+5、输入 ifconfig 即可看到配置成功的IP
 
 ### Ubuntu中的配置方法
 
